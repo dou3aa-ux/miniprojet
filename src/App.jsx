@@ -16,7 +16,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   const pageComponents = {
-    dashboard: <Dashboard />,
+    dashboard: <Dashboard setCurrentPage={setCurrentPage} />,
     courses: <Courses />,
     assignments: <Assignments />,
     grades: <Grades />,
@@ -30,10 +30,13 @@ function App() {
     <div className="app">
       <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
       <div className="main">
-        <Topbar title={currentPage === 'dashboard' ? 'Dashboard' : 
-          currentPage.charAt(0).toUpperCase() + currentPage.slice(1)} />
+        <Topbar 
+          title={currentPage === 'dashboard' ? 'Dashboard' : 
+            currentPage.charAt(0).toUpperCase() + currentPage.slice(1)} 
+          setCurrentPage={setCurrentPage}
+        />
         <div className="content">
-          {pageComponents[currentPage] || <div>Page not found</div>}
+          {pageComponents[currentPage]}
         </div>
       </div>
     </div>

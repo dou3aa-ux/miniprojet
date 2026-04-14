@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const Dashboard = () => {
+const Dashboard = ({ setCurrentPage }) => {
   const [tasks, setTasks] = useState([
     { id: 1, name: "Algorithms Lab Report", due: "Due today", urgent: true, done: false },
     { id: 2, name: "DB Project — ER Diagram", due: "Due Apr 17", urgent: false, done: false },
@@ -9,9 +9,7 @@ const Dashboard = () => {
   ]);
 
   const toggleTask = (id) => {
-    setTasks(tasks.map(t => 
-      t.id === id ? { ...t, done: !t.done } : t
-    ));
+    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
   };
 
   return (
@@ -21,7 +19,7 @@ const Dashboard = () => {
         <p>Here's what's happening today — Tuesday, 14 April 2026</p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats */}
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '24px'}}>
         <div className="stat-card card">
           <div className="stat-label">Overall GPA</div>
@@ -45,15 +43,19 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Today's schedule + Pending tasks */}
-      <div className="row row-3" style={{display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px'}}>
-        
-        {/* Today's Schedule */}
+      <div style={{display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px', marginBottom: '24px'}}>
+        {/* Today's schedule */}
         <div className="card">
-          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px'}}>
+          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'16px'}}>
             <span style={{fontWeight:'600'}}>Today's schedule</span>
-            <span style={{color:'#534AB7', cursor:'pointer', fontSize:'13px'}} onClick={() => window.location.hash = '#weekly'}>View week →</span>
+            <span 
+              style={{color:'#534AB7', cursor:'pointer', fontSize:'13px'}}
+              onClick={() => setCurrentPage('weekly')}
+            >
+              View week →
+            </span>
           </div>
+          {/* ... existing schedule items ... */}
           <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'12px 0', borderBottom:'1px solid #e2e8f0'}}>
             <div className="course-dot dot-purple">ALG</div>
             <div style={{flex:1}}>
@@ -62,7 +64,7 @@ const Dashboard = () => {
             </div>
             <span className="pill pill-purple">Now</span>
           </div>
-          <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'12px 0', borderBottom:'1px solid #e2e8f0'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'12px 0'}}>
             <div className="course-dot dot-blue">DB</div>
             <div style={{flex:1}}>
               <div style={{fontWeight:'500'}}>Databases</div>
@@ -72,37 +74,31 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Pending Tasks */}
+        {/* Pending tasks */}
         <div className="card">
-          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px'}}>
+          <div style={{display:'flex', justifyContent:'space-between', marginBottom:'16px'}}>
             <span style={{fontWeight:'600'}}>Pending tasks</span>
-            <span style={{color:'#534AB7', cursor:'pointer', fontSize:'13px'}}>All tasks →</span>
+            <span 
+              style={{color:'#534AB7', cursor:'pointer', fontSize:'13px'}}
+              onClick={() => setCurrentPage('assignments')}
+            >
+              All tasks →
+            </span>
           </div>
-          
           {tasks.map(task => (
-            <div key={task.id} style={{display:'flex', gap:'12px', padding:'10px 0', borderBottom:'1px solid #e2e8f0', alignItems:'flex-start'}}>
-              <div 
-                onClick={() => toggleTask(task.id)}
-                style={{
-                  width: '18px', height: '18px', border: '2px solid #94a3b8',
-                  borderRadius: '5px', cursor: 'pointer', marginTop: '3px',
-                  background: task.done ? '#534AB7' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}
-              >
-                {task.done && <span style={{color: 'white', fontSize: '11px'}}>✓</span>}
+            <div key={task.id} style={{display:'flex', gap:'12px', padding:'10px 0', borderBottom:'1px solid #e2e8f0'}}>
+              <div onClick={() => toggleTask(task.id)} style={{
+                width:'18px', height:'18px', border:'2px solid #94a3b8', borderRadius:'5px',
+                background: task.done ? '#534AB7' : 'transparent', cursor:'pointer',
+                display:'flex', alignItems:'center', justifyContent:'center'
+              }}>
+                {task.done && <span style={{color:'white', fontSize:'11px'}}>✓</span>}
               </div>
-              <div style={{flex: 1}}>
-                <div style={{ 
-                  textDecoration: task.done ? 'line-through' : 'none',
-                  color: task.done ? '#94a3b8' : 'inherit',
-                  fontWeight: '500'
-                }}>
+              <div style={{flex:1}}>
+                <div style={{textDecoration: task.done ? 'line-through' : 'none', color: task.done ? '#94a3b8' : 'inherit'}}>
                   {task.name}
                 </div>
-                <div style={{fontSize: '12px', color: task.urgent ? '#993C1D' : '#94a3b8'}}>
-                  {task.due}
-                </div>
+                <div style={{fontSize:'12px', color: task.urgent ? '#993C1D' : '#94a3b8'}}>{task.due}</div>
               </div>
             </div>
           ))}

@@ -65,17 +65,22 @@ const Sidebar = ({ currentPage, setCurrentPage }) => {
         </div>
       </div>
 
-      <div className="sidebar-footer">
-        <div className="user-card" onClick={() => setCurrentPage('profile')}>
-          <div className="avatar">EB</div>
-          <div className="user-info">
-            <div className="user-name">Eya Ben Ali</div>
-            <div className="user-class">L3 CS — Group A</div>
-          </div>
+      {/* Profile Picture - Perfectly centered at the very bottom */}
+      <div style={{ marginTop: 'auto', padding: '20px 0 24px 0', display: 'flex', justifyContent: 'center' }}>
+        <div 
+          onClick={() => setCurrentPage('profile')}
+          style={{ 
+            cursor: 'pointer',
+            transition: 'all 0.25s ease'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
+          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          
         </div>
       </div>
     </aside>
   );
 };
 
-export default Sidebar;   // ← This line is very important!
+export default Sidebar;
