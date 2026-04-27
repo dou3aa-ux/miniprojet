@@ -1,8 +1,29 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-const Topbar = ({ title, setCurrentPage }) => {
+// Map paths to display titles
+const pageTitles = {
+  '/dashboard': 'Dashboard',
+  '/courses': 'Courses',
+  '/assignments': 'Assignments',
+  '/grades': 'Grades',
+  '/weekly': 'Weekly Calendar',
+  '/exams': 'Exam Calendar',
+  '/groups': 'Groups',
+  '/profile': 'Profile',
+};
+
+const Topbar = ({ onMenuClick }) => {
   const [showNotif, setShowNotif] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { student } = useAuth();
 
+  // Get current page title from route
+  const title = pageTitles[location.pathname] || 'Dashboard';
+
+  // Sample notifications (could be fetched from API)
   const notifications = [
     { id: 1, text: "Your Algorithms midterm grade has been posted", time: "Just now", important: true },
     { id: 2, text: "Web Development assignment deadline extended by 2 days", time: "2 hours ago", important: false },
@@ -12,7 +33,38 @@ const Topbar = ({ title, setCurrentPage }) => {
 
   return (
     <div className="topbar">
+      {/* Mobile menu button */}
+      <button
+        onClick={onMenuClick}
+        style={{
+          display: 'none',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '8px',
+          borderRadius: '8px',
+          marginRight: '8px',
+        }}
+        className="mobile-menu-btn"
+        aria-label="Toggle menu"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#64748b">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+
       <div className="topbar-title">{title}</div>
+
+      {/* Search Box */}
+      <div className="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#94a3b8">
+          <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input 
+          type="text" 
+          placeholder="Search courses, assignments..." 
+        />
+      </div>
 
       {/* Notifications */}
       <div 
@@ -68,9 +120,9 @@ const Topbar = ({ title, setCurrentPage }) => {
         )}
       </div>
 
-      {/* Profile Picture in Topbar - Next to Notifications */}
+      {/* Profile Picture in Topbar */}
       <div 
-        onClick={() => setCurrentPage('profile')}
+        onClick={() => navigate('/profile')}
         style={{
           width: '38px',
           height: '38px',
@@ -86,7 +138,7 @@ const Topbar = ({ title, setCurrentPage }) => {
       >
         <img 
           src="https://i.pinimg.com/1200x/85/49/0f/85490f3eb7408f88b97bc98c229e65e9.jpg" 
-          alt="Eya Ben Ali"
+          alt={student?.name || 'Profile'}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </div>
