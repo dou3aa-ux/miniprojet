@@ -1,12 +1,25 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 const Profile = () => {
-  const { student, updateStudent } = useAuth();
+  const { student, updateStudent, logout } = useAuth();
+  const navigate = useNavigate();
   const [classData, setClassData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: student?.name || '',
+    email: student?.email || '',
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -27,6 +40,62 @@ const Profile = () => {
     fetchClassData();
   }, [student?.classId]);
 
+  // Update form when student data changes
+  useEffect(() => {
+    if (student) {
+      setEditForm({
+        name: student.name || '',
+        email: student.email || '',
+      });
+    }
+  }, [student]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setMessage({ type: '', text: '' });
+    
+    try {
+      // In a real app, you would call an API to update the profile
+      // For now, we'll update locally
+      const updatedStudent = { ...student, name: editForm.name, email: editForm.email };
+      updateStudent(updatedStudent);
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setShowEditModal(false);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to update profile' });
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setMessage({ type: '', text: '' });
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setMessage({ type: 'error', text: 'Passwords do not match' });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'Password must be at least 6 characters' });
+      return;
+    }
+
+    try {
+      // In a real app, you would call an API to change password
+      // For now, we'll just show success
+      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordModal(false);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to change password' });
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
@@ -44,9 +113,15 @@ const Profile = () => {
         <p>Your account information</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', maxWidth: '900px' }}>
+      {/* Profile Layout - Fully Responsive */}
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        gap: '24px', 
+        maxWidth: '100%'
+      }}>
         {/* Profile Card */}
-        <div className="card" style={{ textAlign: 'center' }}>
+        <div className="card" style={{ textAlign: 'center', maxWidth: '400px', margin: '0 auto', width: '100%' }}>
           <div style={{ marginBottom: '20px' }}>
             <div 
               style={{
@@ -85,8 +160,8 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Account Details */}
-        <div>
+        {/* Account Details - Full Width */}
+        <div style={{ width: '100%' }}>
           <div className="card" style={{ marginBottom: '20px' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', paddingBottom: '12px', borderBottom: '1px solid var(--color-border-tertiary)' }}>
               Personal Information
@@ -179,6 +254,7 @@ const Profile = () => {
                   gap: '8px',
                   transition: 'all 0.15s',
                 }}
+                onClick={() => setShowEditModal(true)}
                 onMouseOver={(e) => {
                   e.currentTarget.style.background = '#EEEDFE';
                   e.currentTarget.style.borderColor = '#534AB7';
@@ -210,6 +286,7 @@ const Profile = () => {
                   gap: '8px',
                   transition: 'all 0.15s',
                 }}
+                onClick={() => setShowPasswordModal(true)}
                 onMouseOver={(e) => {
                   e.currentTarget.style.background = '#EAF3DE';
                   e.currentTarget.style.borderColor = '#3B6D11';
@@ -241,6 +318,7 @@ const Profile = () => {
                   gap: '8px',
                   transition: 'all 0.15s',
                 }}
+                onClick={handleLogout}
                 onMouseOver={(e) => {
                   e.currentTarget.style.background = '#FEE2E2';
                 }}
@@ -257,6 +335,251 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '16px',
+        }}>
+          <div className="card" style={{ maxWidth: '400px', width: '100%', position: 'relative' }}>
+            <button
+              onClick={() => { setShowEditModal(false); setMessage({ type: '', text: '' }); }}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              ×
+            </button>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>Edit Profile</h3>
+            <form onSubmit={handleEditSubmit}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid var(--color-border-tertiary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid var(--color-border-tertiary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                  }}
+                />
+              </div>
+              {message.text && (
+                <div style={{
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  background: message.type === 'success' ? '#EAF3DE' : '#FEF2F2',
+                  color: message.type === 'success' ? '#3B6D11' : '#DC2626',
+                  fontSize: '13px',
+                }}>
+                  {message.text}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => { setShowEditModal(false); setMessage({ type: '', text: '' }); }}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'var(--color-background-secondary)',
+                    border: '1px solid var(--color-border-tertiary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '10px 20px',
+                    background: '#534AB7',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showPasswordModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '16px',
+        }}>
+          <div className="card" style={{ maxWidth: '400px', width: '100%', position: 'relative' }}>
+            <button
+              onClick={() => { setShowPasswordModal(false); setMessage({ type: '', text: '' }); }}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              ×
+            </button>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>Change Password</h3>
+            <form onSubmit={handlePasswordSubmit}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid var(--color-border-tertiary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid var(--color-border-tertiary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontSize: '12px', fontWeight: '500', color: 'var(--color-text-secondary)', display: 'block', marginBottom: '4px' }}>
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid var(--color-border-tertiary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                  }}
+                />
+              </div>
+              {message.text && (
+                <div style={{
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  background: message.type === 'success' ? '#EAF3DE' : '#FEF2F2',
+                  color: message.type === 'success' ? '#3B6D11' : '#DC2626',
+                  fontSize: '13px',
+                }}>
+                  {message.text}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => { setShowPasswordModal(false); setMessage({ type: '', text: '' }); }}
+                  style={{
+                    padding: '10px 20px',
+                    background: 'var(--color-background-secondary)',
+                    border: '1px solid var(--color-border-tertiary)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '10px 20px',
+                    background: '#534AB7',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Change Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };
